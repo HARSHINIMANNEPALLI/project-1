@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; text-align: center; }
+        input, select, button { margin: 10px 5px; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        button { background-color: #28a745; color: white; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        .recipe { border: 1px solid #ddd; padding: 10px; margin-top: 10px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease-in-out; }
+        .recipe:hover { transform: scale(1.05); }
+        .favorites, .meal-plan { margin-top: 20px; padding: 10px; border: 1px solid #ddd; background: white; }
+        .loader { display: none; width: 50px; height: 50px; border: 5px solid #ccc; border-top: 5px solid #28a745; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <h1>Recipe Search</h1>
+    <input type="text" id="searchQuery" placeholder="Enter recipe keyword">
+    <select id="cuisine">
+        <option value="">Any Cuisine</option>
+        <option value="italian">Italian</option>
+        <option value="mexican">Mexican</option>
+        <option value="chinese">Chinese</option>
+    </select>
+    <select id="diet">
+        <option value="">Any Diet</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="vegan">Vegan</option>
+        <option value="gluten free">Gluten Free</option>
+    </select>
+    <button onclick="searchRecipes()">Search</button>
+    
+    <div class="loader" id="loader"></div>
+    <div id="recipes"></div>
+    
+    <h2>Meal Plan</h2>
+    <div id="mealPlan" class="meal-plan"></div>
+    
+    <h2>Favorites</h2>
+    <div id="favorites" class="favorites"></div>
+
+
+    <script>
+        const apiKey = 'cdbfbcfc4588435380c517dfd0d9f0b7';
+        let favorites = [];
+        let mealPlan = [];
+
+        function searchRecipes() {
+            document.getElementById('loader').style.display = 'block';
+            const query = document.getElementById('searchQuery').value;
+            const cuisine = document.getElementById('cuisine').value;
+            const diet = document.getElementById('diet').value;
+            
+            fetch(`https://api.spoonacular.com/recipes/complexSearch?query=${query}&cuisine=${cuisine}&diet=${diet}&apiKey=${apiKey}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loader').style.display = 'none';
+                    const recipesDiv = document.getElementById('recipes');
+                    recipesDiv.innerHTML = '';
+                    data.results.forEach(recipe => {
+                        const recipeElement = document.createElement('div');
+                        recipeElement.classList.add('recipe');
+                        recipeElement.innerHTML = `
+                            <h2>${recipe.title}</h2>
+                            <img src="${recipe.image}" alt="${recipe.title}" width="200">
+                            <br>
+                            <button onclick="addToFavorites('${recipe.title}', '${recipe.image}')">❤️ Add to Favorites</button>
+                            <button onclick="addToMealPlan('${recipe.title}', '${recipe.image}')">🍽️ Add to Meal Plan</button>
+                        `;
+                        recipesDiv.appendChild(recipeElement);
+                    });
+                })
+                .catch(error => console.error('Error fetching recipes:', error));
+        }
+
+        function addToFavorites(title, image) {
+            favorites.push({ title, image });
+            updateFavorites();
+        }
+
+        function addToMealPlan(title, image) {
+            mealPlan.push({ title, image });
+            updateMealPlan();
+        }
+
+        function updateFavorites() {
+            const favoritesDiv = document.getElementById('favorites');
+            favoritesDiv.innerHTML = '';
+            favorites.forEach(recipe => {
+                const recipeElement = document.createElement('div');
+                recipeElement.classList.add('recipe');
+                recipeElement.innerHTML = `
+                    <h2>${recipe.title}</h2>
+                    <img src="${recipe.image}" alt="${recipe.title}" width="200">
+                `;
+                favoritesDiv.appendChild(recipeElement);
+            });
+        }
+
+        function updateMealPlan() {
+            const mealPlanDiv = document.getElementById('mealPlan');
+            mealPlanDiv.innerHTML = '';
+            mealPlan.forEach(recipe => {
+                const recipeElement = document.createElement('div');
+                recipeElement.classList.add('recipe');
+                recipeElement.innerHTML = `
+                    <h2>${recipe.title}</h2>
+                    <img src="${recipe.image}" alt="${recipe.title}" width="200">
+                `;
+                mealPlanDiv.appendChild(recipeElement);
+            });
+        }
+    </script>
+</body>
+</html>
+
